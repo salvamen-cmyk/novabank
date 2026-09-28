@@ -1,0 +1,4 @@
+server = "https://{{ containerd_registry_host }}"
+[host."https://{{ containerd_registry_host }}"]
+  capabilities = ["pull", "resolve"]
+  ca = "ca.crt"
