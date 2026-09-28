@@ -1,0 +1,48 @@
+namespace: novabank-app
+
+imagePullSecrets:
+  - name: harbor-secret-duckdns
+
+backend:
+  replicas: 1
+  image: harbor.novabank-salva.duckdns.org/novabank/fastapi-app@sha256:4f377297fba6a3b233a7ce075230cb226ba21cc60bc506a9025b5921904cf274
+  imagePullPolicy: IfNotPresent
+  containerPort: 8000
+  service:
+    name: novabank-backend-svc
+    type: ClusterIP
+    port: 8000
+  secretName: novabank-backend-secret
+
+frontend:
+  replicas: 1
+  image: harbor.novabank-salva.duckdns.org/novabank/frontend-app@sha256:5eea6624fde29cdddc930e3f96d1cb87036efaade7e0b5541e5ca56bd047f83d
+  imagePullPolicy: IfNotPresent
+  containerPort: 80
+  service:
+    name: novabank-frontend-svc
+    type: ClusterIP
+    port: 80
+
+postgres:
+  replicas: 1
+  image: docker.io/library/postgres@sha256:f7d23353e1b15400d22ebe31189f4d314b87a4c129cc400c8c2d8d4ca127bf81
+  imagePullPolicy: IfNotPresent
+  containerPort: 5432
+  service:
+    name: postgres-service
+    type: ClusterIP
+    port: 5432
+  secretName: novabank-db-secret
+  pgdata: /var/lib/postgresql/data/pgdata
+  persistence:
+    existingClaim: postgres-pvc
+    mountPath: /var/lib/postgresql/data
+
+ingress:
+  enabled: true
+  className: traefik
+  host: novabank-salva.duckdns.org
+  tls:
+    enabled: true
+    secretName: novabank-tls-secret

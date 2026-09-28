@@ -1,0 +1,35 @@
+# Terraform runtime/state
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform.lock.hcl.backup
+
+# Secrets / credentials
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.kubeconfig
+*credentials*
+*secret*
+.env
+.env.*
+!.env.example
+
+# Backups / generated runtime material
+backup/
+backups/
+pre-helm-adoption-*.yaml
+*.bak
+*.backup
+*.tmp
+
+# Helm temporary/cache
+**/charts/*.lock
+
+# Generated Helm packages
+helm/charts/*.tgz
+helm/charts/*.tgz.sha256
