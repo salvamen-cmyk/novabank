@@ -44,3 +44,8 @@ helm/charts/harbor-1.4.0-dev-ed46e35/
 *_git_*.log
 git_cleanup_temp.sh
 final_git_cleanup.sh
+/private-backups/
+
+# SealedSecret manifests are encrypted and must be versioned
+!/sealed-secrets/
+!/sealed-secrets/*.yaml
