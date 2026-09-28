@@ -37,3 +37,10 @@ helm/charts/*.tgz.sha256
 # Terraform generated plans
 tfplan
 *.tfplan
+# Local reference / recovery files
+backup-before-rebuild/
+helm/charts/harbor-1.4.0-dev-ed46e35/
+*_git_*.sh
+*_git_*.log
+git_cleanup_temp.sh
+final_git_cleanup.sh
