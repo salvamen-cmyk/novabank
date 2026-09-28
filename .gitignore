@@ -33,3 +33,7 @@ pre-helm-adoption-*.yaml
 # Generated Helm packages
 helm/charts/*.tgz
 helm/charts/*.tgz.sha256
+
+# Terraform generated plans
+tfplan
+*.tfplan
