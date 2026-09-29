@@ -83,13 +83,59 @@ spec:
         - protocol: TCP
           port: 5432
 
-    # Jobs du namespace -> PostgreSQL.
-    # Cela couvre le CronJob de backup et les Jobs manuels dérivés.
+    # Backup PostgreSQL -> PostgreSQL
     - from:
         - podSelector:
-            matchExpressions:
-              - key: batch.kubernetes.io/job-name
-                operator: Exists
+            matchLabels:
+              app: novabank
+              component: postgres-backup
       ports:
         - protocol: TCP
           port: 5432
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: novabank-postgres-backup-egress
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: novabank
+      component: postgres-backup
+
+  policyTypes:
+    - Egress
+
+  egress:
+    # DNS Kubernetes
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+    # Backup -> PostgreSQL
+    - to:
+        - podSelector:
+            matchLabels:
+              app: novabank-db
+      ports:
+        - protocol: TCP
+          port: 5432
+
+    # Backup -> MinIO
+    - to:
+        - ipBlock:
+            cidr: 192.168.100.33/32
+      ports:
+        - protocol: TCP
+          port: 9000
