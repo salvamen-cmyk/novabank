@@ -1,0 +1,6 @@
+---
+- name: Configure Harbor registry on Kubernetes workers
+  hosts: k8s_workers
+  become: true
+  roles:
+    - containerd_registry

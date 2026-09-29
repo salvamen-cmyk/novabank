@@ -1,0 +1,59 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: novabank-postgres-backup
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: novabank
+    component: postgres-backup
+spec:
+  schedule: "15 3 * * *"
+  timeZone: "Etc/UTC"
+  startingDeadlineSeconds: 900
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 7
+  failedJobsHistoryLimit: 3
+
+  jobTemplate:
+    metadata:
+      labels:
+        app: novabank
+        component: postgres-backup
+
+    spec:
+      activeDeadlineSeconds: 3600
+      backoffLimit: 2
+
+      template:
+        metadata:
+          labels:
+            app: novabank
+            component: postgres-backup
+
+        spec:
+          restartPolicy: Never
+          automountServiceAccountToken: false
+
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
+
+          containers:
+            - name: postgres-dump
+              image: {{ .Values.postgresBackup.image | quote }}
+              imagePullPolicy: IfNotPresent
+
+              command:
+                - /usr/local/bin/novabank-postgres-backup
+
+              env:
+                - name: PGHOST
+                  value: postgres-service
+                - name: PGPORT
+                  value: "5432"
+
+              envFrom:
+                - secretRef:
+                    name: novabank-postgres-backup-credentials
+                - secretRef:
+                    name: novabank-postgres-backup-minio

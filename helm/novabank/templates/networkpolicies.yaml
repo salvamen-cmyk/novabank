@@ -1,0 +1,196 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: novabank-frontend-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: novabank
+      component: frontend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - protocol: TCP
+          port: 80
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: novabank-backend-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: novabank
+      component: backend
+  policyTypes:
+    - Ingress
+  ingress:
+    # Traefik -> backend (/api)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - protocol: TCP
+          port: 8000
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: novabank-postgres-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: novabank-db
+  policyTypes:
+    - Ingress
+  ingress:
+    # Backend -> PostgreSQL
+    - from:
+        - podSelector:
+            matchLabels:
+              app: novabank
+              component: backend
+      ports:
+        - protocol: TCP
+          port: 5432
+
+    # Backup PostgreSQL -> PostgreSQL
+    - from:
+        - podSelector:
+            matchLabels:
+              app: novabank
+              component: postgres-backup
+      ports:
+        - protocol: TCP
+          port: 5432
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: novabank-postgres-backup-egress
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: novabank
+      component: postgres-backup
+
+  policyTypes:
+    - Egress
+
+  egress:
+    # DNS Kubernetes
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+    # Backup -> PostgreSQL
+    - to:
+        - podSelector:
+            matchLabels:
+              app: novabank-db
+      ports:
+        - protocol: TCP
+          port: 5432
+
+    # Backup -> MinIO
+    - to:
+        - ipBlock:
+            cidr: 192.168.100.33/32
+      ports:
+        - protocol: TCP
+          port: 9000
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: novabank-backend-egress
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: novabank
+      component: backend
+  policyTypes:
+    - Egress
+  egress:
+    # DNS Kubernetes
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+
+    # Backend -> PostgreSQL uniquement
+    - to:
+        - podSelector:
+            matchLabels:
+              app: novabank-db
+      ports:
+        - protocol: TCP
+          port: 5432
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: novabank-frontend-egress-deny
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: novabank
+      component: frontend
+  policyTypes:
+    - Egress
+  egress: []
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: novabank-postgres-egress-deny
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: novabank-db
+  policyTypes:
+    - Egress
+  egress: []
