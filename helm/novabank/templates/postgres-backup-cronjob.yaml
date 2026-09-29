@@ -8,6 +8,8 @@ metadata:
     component: postgres-backup
 spec:
   schedule: "15 3 * * *"
+  timeZone: "Etc/UTC"
+  startingDeadlineSeconds: 900
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 7
   failedJobsHistoryLimit: 3
@@ -19,6 +21,7 @@ spec:
         component: postgres-backup
 
     spec:
+      activeDeadlineSeconds: 3600
       backoffLimit: 2
 
       template:
@@ -29,6 +32,10 @@ spec:
 
         spec:
           restartPolicy: Never
+          automountServiceAccountToken: false
+          securityContext:
+            seccompProfile:
+              type: RuntimeDefault
 
           containers:
             - name: postgres-dump
