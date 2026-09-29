@@ -1,0 +1,27 @@
+helmDefaults:
+  atomic: true
+  wait: true
+  timeout: 600
+  templateArgs:
+    - --dry-run=server
+
+releases:
+  - name: novabank
+    namespace: novabank-app
+    chart: ./helm/novabank
+    version: 0.1.0
+    installed: true
+
+  - name: traefik
+    namespace: traefik
+    chart: traefik/traefik
+    version: 41.5.0
+    values:
+      - ./traefik/values-traefik.yaml
+    installed: true
+
+  - name: harbor
+    namespace: harbor
+    chart: ./helm/charts/harbor-1.4.0-dev-ed46e35-idempotent
+    reuseValues: true
+    installed: true

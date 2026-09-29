@@ -1,0 +1,7 @@
+containerd_registry_host: harbor.novabank-salva.duckdns.org
+containerd_certs_dir: /etc/containerd/certs.d
+containerd_registry_dir: /etc/containerd/certs.d/harbor.novabank-salva.duckdns.org
+containerd_config_file: /etc/containerd/config.toml
+containerd_cri_config_path: /etc/containerd/certs.d
+crictl_config_file: /etc/crictl.yaml
+crictl_endpoint: unix:///run/containerd/containerd.sock

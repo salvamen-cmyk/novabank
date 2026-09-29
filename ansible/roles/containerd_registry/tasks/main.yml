@@ -1,0 +1,47 @@
+---
+- name: Create Harbor containerd registry directory
+  ansible.builtin.file:
+    path: "{{ containerd_registry_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Install Harbor CA certificate
+  ansible.builtin.copy:
+    src: harbor-ca.crt
+    dest: "{{ containerd_registry_dir }}/ca.crt"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Configure containerd Harbor hosts.toml
+  ansible.builtin.template:
+    src: hosts.toml.j2
+    dest: "{{ containerd_registry_dir }}/hosts.toml"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Configure containerd CRI registry config_path
+  ansible.builtin.replace:
+    path: "{{ containerd_config_file }}"
+    after: "(?m)^\\s*\\[plugins\\.'io\\.containerd\\.cri\\.v1\\.images'\\.registry\\]\\n"
+    before: "(?m)^\\s*\\[plugins\\.'io\\.containerd\\.cri\\.v1\\.images'\\.image_decryption\\]\\n"
+    regexp: "^\\s*config_path\\s*=\\s*[^\\n]*$"
+    replace: "      config_path = '{{ containerd_cri_config_path }}'"
+    backup: true
+    validate: "/usr/bin/containerd config dump --config %s >/dev/null"
+  notify: Restart containerd
+
+- name: Configure crictl endpoint
+  ansible.builtin.copy:
+    dest: "{{ crictl_config_file }}"
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      runtime-endpoint: {{ crictl_endpoint }}
+      image-endpoint: {{ crictl_endpoint }}
+      timeout: 10
+      debug: false

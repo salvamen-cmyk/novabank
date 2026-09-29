@@ -1,0 +1,51 @@
+# Terraform runtime/state
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+.terraform.lock.hcl.backup
+
+# Secrets / credentials
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.kubeconfig
+*credentials*
+*secret*
+.env
+.env.*
+!.env.example
+
+# Backups / generated runtime material
+backup/
+backups/
+pre-helm-adoption-*.yaml
+*.bak
+*.backup
+*.tmp
+
+# Helm temporary/cache
+**/charts/*.lock
+
+# Generated Helm packages
+helm/charts/*.tgz
+helm/charts/*.tgz.sha256
+
+# Terraform generated plans
+tfplan
+*.tfplan
+# Local reference / recovery files
+backup-before-rebuild/
+helm/charts/harbor-1.4.0-dev-ed46e35/
+*_git_*.sh
+*_git_*.log
+git_cleanup_temp.sh
+final_git_cleanup.sh
+/private-backups/
+
+# SealedSecret manifests are encrypted and must be versioned
+!/sealed-secrets/
+!/sealed-secrets/*.yaml
