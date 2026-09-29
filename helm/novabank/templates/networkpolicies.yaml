@@ -1,0 +1,95 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: novabank-frontend-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: novabank
+      component: frontend
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - protocol: TCP
+          port: 80
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: novabank-backend-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: novabank
+      component: backend
+  policyTypes:
+    - Ingress
+  ingress:
+    # Traefik -> backend (/api)
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - protocol: TCP
+          port: 8000
+
+    # Frontend -> backend, conservé au cas où le frontend
+    # effectuerait également des appels internes.
+    - from:
+        - podSelector:
+            matchLabels:
+              app: novabank
+              component: frontend
+      ports:
+        - protocol: TCP
+          port: 8000
+
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: novabank-postgres-ingress
+  namespace: {{ .Release.Namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app: novabank-db
+  policyTypes:
+    - Ingress
+  ingress:
+    # Backend -> PostgreSQL
+    - from:
+        - podSelector:
+            matchLabels:
+              app: novabank
+              component: backend
+      ports:
+        - protocol: TCP
+          port: 5432
+
+    # Jobs du namespace -> PostgreSQL.
+    # Cela couvre le CronJob de backup et les Jobs manuels dérivés.
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: batch.kubernetes.io/job-name
+                operator: Exists
+      ports:
+        - protocol: TCP
+          port: 5432
