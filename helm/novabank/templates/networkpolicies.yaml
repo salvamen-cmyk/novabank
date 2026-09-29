@@ -49,17 +49,6 @@ spec:
         - protocol: TCP
           port: 8000
 
-    # Frontend -> backend, conservé au cas où le frontend
-    # effectuerait également des appels internes.
-    - from:
-        - podSelector:
-            matchLabels:
-              app: novabank
-              component: frontend
-      ports:
-        - protocol: TCP
-          port: 8000
-
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
