@@ -33,13 +33,18 @@ spec:
         spec:
           restartPolicy: Never
           automountServiceAccountToken: false
+
           securityContext:
             seccompProfile:
               type: RuntimeDefault
 
           containers:
             - name: postgres-dump
-              image: docker.io/library/postgres@sha256:f7d23353e1b15400d22ebe31189f4d314b87a4c129cc400c8c2d8d4ca127bf81
+              image: {{ .Values.postgresBackup.image | quote }}
+              imagePullPolicy: IfNotPresent
+
+              command:
+                - /usr/local/bin/novabank-postgres-backup
 
               env:
                 - name: PGHOST
@@ -52,47 +57,3 @@ spec:
                     name: novabank-postgres-backup-credentials
                 - secretRef:
                     name: novabank-postgres-backup-minio
-
-              command:
-                - /bin/sh
-                - -ec
-                - |
-                  MC_VERSION="RELEASE.2025-08-13T08-35-41Z"
-                  MC_URL="https://github.com/minio/mc/releases/download/${MC_VERSION}/mc.linux-amd64.${MC_VERSION}"
-                  MC_SHA256="01f866e9c5f9b87c2b09116fa5d7c06695b106242d829a8bb32990c00312e891"
-
-                  echo "Downloading mc ${MC_VERSION}"
-                  wget -q "${MC_URL}" -O /tmp/mc
-                  echo "${MC_SHA256}  /tmp/mc" | sha256sum -c -
-                  chmod 700 /tmp/mc
-
-                  echo "Verifying mc"
-                  /tmp/mc --version
-
-                  TS="$(date -u +%Y-%m-%dT%H%M%SZ)"
-                  DUMP="/tmp/novabank_db-${TS}.dump"
-                  SHA="/tmp/novabank_db-${TS}.dump.sha256"
-
-                  echo "Starting pg_dump"
-                  PGPASSWORD="${POSTGRES_PASSWORD}" pg_dump \
-                    -U "${POSTGRES_USER}" \
-                    -d "${POSTGRES_DB}" \
-                    -Fc \
-                    -f "${DUMP}"
-
-                  sha256sum "${DUMP}" > "${SHA}"
-
-                  ENDPOINT_HOST="${AWS_ENDPOINTS#http://}"
-                  export MC_HOST_backup="http://${AWS_ACCESS_KEY_ID}:${AWS_SECRET_ACCESS_KEY}@${ENDPOINT_HOST}"
-
-                  DEST="backup/novabank-longhorn-backups/postgresql/${TS}"
-
-                  echo "Uploading PostgreSQL backup"
-                  /tmp/mc cp "${DUMP}" "${DEST}/novabank_db.dump"
-                  /tmp/mc cp "${SHA}" "${DEST}/novabank_db.dump.sha256"
-
-                  echo "Verifying remote object"
-                  /tmp/mc stat "${DEST}/novabank_db.dump"
-                  /tmp/mc stat "${DEST}/novabank_db.dump.sha256"
-
-                  echo "PostgreSQL backup completed successfully"

@@ -46,3 +46,6 @@ ingress:
   tls:
     enabled: true
     secretName: novabank-tls-secret
+
+postgresBackup:
+  image: harbor.novabank-salva.duckdns.org/novabank/postgres-backup@sha256:cc2bd9b1d513312bd5fc9157777016a195f6fc8e0bcf9b6fe511e8a52c3c8f3d
