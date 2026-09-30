@@ -49,3 +49,6 @@ final_git_cleanup.sh
 # SealedSecret manifests are encrypted and must be versioned
 !/sealed-secrets/
 !/sealed-secrets/*.yaml
+
+# Local validation evidence
+/evidence/v03/
