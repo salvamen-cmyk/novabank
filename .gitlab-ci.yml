@@ -1,7 +1,7 @@
 stages:
   - validate
   - sast
-  - dast
+  - dynamic_security
 
 variables:
   DAST_HOST: "novabank-salva.duckdns.org"
@@ -39,8 +39,8 @@ semgrep_sast:
     - if: '$CI_PIPELINE_SOURCE == "push"'
     - if: '$CI_PIPELINE_SOURCE == "web"'
 
-zap_dast:
-  stage: dast
+zap_baseline:
+  stage: dynamic_security
   image:
     name: ghcr.io/zaproxy/zaproxy:stable
     entrypoint: [""]
