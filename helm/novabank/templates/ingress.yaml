@@ -4,6 +4,8 @@ kind: Ingress
 metadata:
   name: novabank-ingress
   namespace: {{ .Values.namespace }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: "{{ .Values.namespace }}-novabank-security-headers@kubernetescrd"
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- if .Values.ingress.tls.enabled }}

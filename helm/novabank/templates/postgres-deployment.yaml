@@ -19,6 +19,8 @@ spec:
         - name: postgres
           image: {{ .Values.postgres.image | quote }}
           imagePullPolicy: {{ .Values.postgres.imagePullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
           ports:
             - containerPort: {{ .Values.postgres.containerPort }}
               protocol: TCP

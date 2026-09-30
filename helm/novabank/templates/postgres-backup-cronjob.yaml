@@ -43,6 +43,10 @@ spec:
               image: {{ .Values.postgresBackup.image | quote }}
               imagePullPolicy: IfNotPresent
 
+              securityContext:
+                allowPrivilegeEscalation: false
+                runAsNonRoot: true
+
               command:
                 - /usr/local/bin/novabank-postgres-backup
 
